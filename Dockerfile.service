@@ -1,0 +1,20 @@
+FROM maven:3.9.9-eclipse-temurin-21 AS build
+ARG MODULE
+WORKDIR /workspace
+COPY pom.xml .
+COPY discovery-server discovery-server
+COPY api-gateway api-gateway
+COPY auth-service auth-service
+COPY academic-service academic-service
+COPY guidance-service guidance-service
+COPY notification-service notification-service
+COPY analytics-service analytics-service
+COPY import-service import-service
+RUN mvn -q -pl ${MODULE} -am clean package -DskipTests
+
+FROM eclipse-temurin:21-jre
+ARG MODULE
+WORKDIR /app
+COPY --from=build /workspace/${MODULE}/target/*.jar app.jar
+EXPOSE 8080
+ENTRYPOINT ["java", "-jar", "/app/app.jar"]

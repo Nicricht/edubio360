@@ -1,0 +1,52 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: api-gateway
+  cloud:
+    gateway:
+      routes:
+        - id: auth-service
+          uri: lb://auth-service
+          predicates:
+            - Path=/api/auth/**
+        - id: academic-service-ofertas
+          uri: lb://academic-service
+          predicates:
+            - Path=/api/ofertas/**
+        - id: academic-service-sedes
+          uri: lb://academic-service
+          predicates:
+            - Path=/api/sedes/**
+        - id: guidance-service
+          uri: lb://guidance-service
+          predicates:
+            - Path=/api/solicitudes/**
+        - id: notification-service
+          uri: lb://notification-service
+          predicates:
+            - Path=/api/notificaciones/**
+        - id: analytics-service
+          uri: lb://analytics-service
+          predicates:
+            - Path=/api/analytics/**
+        - id: import-service
+          uri: lb://import-service
+          predicates:
+            - Path=/api/importaciones/**
+
+security:
+  jwt:
+    secret: ${JWT_SECRET:change-this-local-demo-secret-32-characters-minimum}
+
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_URL:http://localhost:8761/eureka/}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,gateway

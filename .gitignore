@@ -1,0 +1,24 @@
+# Maven
+**/target/
+.mvn/timing.properties
+
+# IDE
+.idea/
+*.iml
+.vscode/
+.classpath
+.project
+.settings/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment / secrets
+.env
+*.local.yml
+*.local.yaml
+
+# Logs
+*.log
+logs/
