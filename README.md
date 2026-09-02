@@ -1,14 +1,5 @@
-## Modelo de Ramificación
+# EduBío 360 - Microservicios (Fase 1)
 
-<<<<<<< HEAD
-GitFlow: Elegí esta metodología para trabajar debido a que me permite organizar mejor las versiones del trabajo a parte de protger más el código en su rama main, de tal forma que no se trabaje directamente sobre esta, ya que yo y quizás otra persona estemos desarrollando código en sus propias ramas feature provenientes de develop facilitando la revisión de cambios a través de pull request y corregir problemas de una manera más ordenada.
-
-### Tipos de Ramas en GitFlow
--Main: Es la rama principal la que será llevado a producción
--Develop: Es la rama que esta después de main, de aquí aparecen las ramas feature.
--Feature/(algo): Ramas para desarrollar,documentar, arreglar..etc, se integran a feature a través de un pull request.
--Hotfix/algo: Se integran a main
-=======
 Base funcional mínima de la arquitectura de EduBío 360. El objetivo es demostrar la separación de servicios, Gateway, Eureka, comunicación REST, Circuit Breaker y mensajería asíncrona. con Java 21, Spring Boot 3, Spring Cloud Gateway, Eureka, RabbitMQ y servicios separados por microservicios.
 
 ## GIT FLOW 
@@ -28,4 +19,3 @@ hotfix: Correcciones urgentes en producción.
 
 
 
->>>>>>> 1c9aa8c028092d29a778657eec03ed3e3cc1a377
