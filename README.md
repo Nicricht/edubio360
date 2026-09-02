@@ -33,3 +33,27 @@ Antes de integrar cambios se revisa el diff y se comprueba que el proyecto compi
 Las features se integran a develop mediante Pull Request como mencioné anteriormente.
 
 Los hotfix se integran a main mediante Pull Request y luego se sincronizan con develop como mencioné anteriorment.
+
+## Evidencias
+
+- Se utilizó GitFlow con main, develop, feature y hotfix.
+- Se realizaron Pull Requests para integrar los cambios.
+- Se configuró GitHub Actions.
+- Hola Mundo CI se ejecuta con push a develop y pull request a main.
+- El workflow de Java ejecuta mvn verify.
+- Se configuró JaCoCo para generar reportes de cobertura.
+- mvn verify finaliza correctamente con BUILD SUCCESS.
+
+# Reflexiones
+
+## ¿Que aprendí?
+Lo que aprendí fue a realizar flujo de versiones ordenadas de mi repositorio gracias a gitflow.
+
+## ¿Lo que yo practicaría más?
+Yo practicaría con una persona real, de tal forma que pudiera a través de palabras discutir la resolución de un conflicto.
+
+## Uso de inteligencia artificial
+
+Se utilizó ChatGPT como herramienta de apoyo para comprender comandos de Git, el flujo GitFlow, la configuración de GitHub Actions y el diagnóstico de errores técnicos durante la actividad.
+
+La reflexión individual y las conclusiones fueron redactadas por mí.
