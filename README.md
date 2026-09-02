@@ -14,8 +14,22 @@ hotfix: Correcciones urgentes en producción.
 
 ### Nombramiento de ramas:
 
--feature/(nombre)
--hotfix/(nombre)
+-feature/(nombre): Escribir una funcionalidad, Se crean a partir de develop y se unen a develop gracias a pull request.
 
+-hotfix/(nombre): Se crean desde main y se integran allí a ravés de pull request.
 
+### Nombramiento de commmits:
+tipo(lugar de la acción):detalles
 
+feat: nueva funcionalidad.
+fix: Solucionar un problema.
+docs: documentación.
+chore: mantenimiento o configuración.
+
+### Revisión de cambios
+
+Antes de integrar cambios se revisa el diff y se comprueba que el proyecto compile correctamente.
+
+Las features se integran a develop mediante Pull Request como mencioné anteriormente.
+
+Los hotfix se integran a main mediante Pull Request y luego se sincronizan con develop como mencioné anteriorment.
