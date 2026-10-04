@@ -1,0 +1,107 @@
+package cl.edubio360.guidance.service;
+
+import cl.edubio360.guidance.AcademicValidationService;
+import cl.edubio360.guidance.RabbitConfig;
+import cl.edubio360.guidance.dto.ActualizarSolicitudRequest;
+import cl.edubio360.guidance.dto.CrearSolicitudRequest;
+import cl.edubio360.guidance.model.SolicitudOrientacion;
+import cl.edubio360.guidance.repository.SolicitudRepository;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.web.server.ResponseStatusException;
+
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
+
+@ExtendWith(MockitoExtension.class)
+class GuidanceServiceTest {
+    @Mock SolicitudRepository repository;
+    @Mock AcademicValidationService academicValidation;
+    @Mock RabbitTemplate rabbitTemplate;
+    ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
+    GuidanceService service;
+    SolicitudOrientacion solicitud;
+
+    @BeforeEach
+    void setUp() {
+        service = new GuidanceService(repository, academicValidation, rabbitTemplate, objectMapper);
+        solicitud = new SolicitudOrientacion("student@example.test", 1L, "Orientación",
+                LocalDateTime.now().plusDays(1));
+    }
+
+    @Test
+    void listaObtieneCreaYFiltraPropias() {
+        when(repository.findAll()).thenReturn(List.of(solicitud));
+        assertEquals(1, service.listar().size());
+
+        when(repository.findById(1L)).thenReturn(Optional.of(solicitud));
+        assertSame(solicitud, service.obtener(1L));
+
+        when(repository.save(any())).thenAnswer(i -> i.getArgument(0));
+        CrearSolicitudRequest request = new CrearSolicitudRequest(1L, "Nueva orientación",
+                LocalDateTime.now().plusDays(2));
+        assertEquals("PENDIENTE", service.crear("student@example.test", "STUDENT", request).getEstado());
+        verify(academicValidation).validarOferta(1L);
+
+        when(repository.findByEstudianteEmailOrderByCreatedAtDesc("student@example.test"))
+                .thenReturn(List.of(solicitud));
+        assertEquals(1, service.mias("student@example.test", "STUDENT").size());
+    }
+
+    @Test
+    void actualizaCancelaYEliminaComoPropietario() {
+        when(repository.findById(1L)).thenReturn(Optional.of(solicitud));
+        ActualizarSolicitudRequest update = new ActualizarSolicitudRequest("Motivo actualizado",
+                LocalDateTime.now().plusDays(3));
+        assertEquals("Motivo actualizado",
+                service.actualizar(1L, "student@example.test", "STUDENT", update).getMotivo());
+
+        assertEquals("CANCELADA",
+                service.cancelar(1L, "student@example.test", "STUDENT").getEstado());
+
+        SolicitudOrientacion otra = new SolicitudOrientacion("student@example.test", 1L, "Otra",
+                LocalDateTime.now().plusDays(1));
+        when(repository.findById(2L)).thenReturn(Optional.of(otra));
+        service.eliminar(2L, "student@example.test", "STUDENT");
+        verify(repository).delete(otra);
+    }
+
+    @Test
+    void confirmaYPublicaEvento() {
+        SolicitudOrientacion mockSolicitud = mock(SolicitudOrientacion.class);
+        when(mockSolicitud.getId()).thenReturn(5L);
+        when(mockSolicitud.getEstudianteEmail()).thenReturn("student@example.test");
+        when(mockSolicitud.getOrientadorEmail()).thenReturn("orientador@example.test");
+        when(mockSolicitud.getEstado()).thenReturn("CONFIRMADA");
+        when(repository.findById(5L)).thenReturn(Optional.of(mockSolicitud));
+
+        assertSame(mockSolicitud, service.confirmar(5L, "orientador@example.test", "ORIENTADOR"));
+        verify(mockSolicitud).confirmar("orientador@example.test");
+        verify(rabbitTemplate).convertAndSend(eq(RabbitConfig.EXCHANGE), eq(RabbitConfig.ROUTING_KEY), anyString());
+    }
+
+    @Test
+    void rechazaRolPropiedadEInexistente() {
+        CrearSolicitudRequest request = new CrearSolicitudRequest(1L, "Motivo",
+                LocalDateTime.now().plusDays(1));
+        assertThrows(ResponseStatusException.class,
+                () -> service.crear("student@example.test", "ADMIN", request));
+
+        when(repository.findById(1L)).thenReturn(Optional.of(solicitud));
+        assertThrows(ResponseStatusException.class,
+                () -> service.cancelar(1L, "otra@example.test", "STUDENT"));
+
+        when(repository.findById(99L)).thenReturn(Optional.empty());
+        assertThrows(ResponseStatusException.class, () -> service.obtener(99L));
+    }
+}
