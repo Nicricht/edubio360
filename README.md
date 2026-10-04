@@ -1,59 +1,186 @@
-# EduBío 360 - Microservicios (Fase 1)
+# EduBío 360 — Backend de Microservicios
 
-Base funcional mínima de la arquitectura de EduBío 360. El objetivo es demostrar la separación de servicios, Gateway, Eureka, comunicación REST, Circuit Breaker y mensajería asíncrona. con Java 21, Spring Boot 3, Spring Cloud Gateway, Eureka, RabbitMQ y servicios separados por microservicios.
+Backend de EduBío 360 para exploración, comparación y orientación sobre Educación Superior del Biobío.
 
-## GIT FLOW 
+La implementación EP02 se construye sobre la arquitectura existente y se alinea con `docs/PAUTA_EVALUACION_EP02_JVY0101.md`.
 
-Elegí el flujo de trabajo "Git flow" porque me permite mantener el desarrollo del proyecto más ordenado y separar los distintos tipos de cambios que voy desarrollando en ramas propias llamadas feature, lo cual da más seguridad cuando uno va modificando código, incluso es más cómodo cuando surge problemas en la rama principal, debido a que uno puede resolverlo en la rama llamada hotfix sin afectar el resto del código, además cuando uno trabaja en equipo, en este caso trabajé solo, la mejor forma de revisar el código de un integrante es cuando este realiza un pull request, asegurandose de que no haya conflictos.
+## Stack
 
-### Tipos de ramas:
-main: Es la rama principal la cual será llevada a producción.
-develop: Rama que después de un pull request obtiene los cambios realizados en feature.
-feature: Donde se desarrolla nuevas funcionalidades
-hotfix: Correcciones urgentes en producción.
+- Java 21
+- Spring Boot 3
+- Maven
+- Spring Data JPA / Hibernate
+- MySQL 8
+- H2 para pruebas rápidas
+- Spring Validation
+- Springdoc OpenAPI / Swagger
+- Spring Cloud Gateway
+- Eureka
+- OpenFeign
+- Resilience4j
+- RabbitMQ
+- JUnit / Mockito / MockMvc
+- Cucumber
+- JaCoCo
+- Docker / Docker Compose
 
-### Nombramiento de ramas:
+## Microservicios
 
--feature/(nombre): Escribir una funcionalidad, Se crean a partir de develop y se unen a develop gracias a pull request.
+| Servicio | Puerto | Recurso principal |
+|---|---:|---|
+| Auth Service | 8081 | `/api/usuarios` |
+| Academic Service | 8082 | `/api/ofertas` |
+| Guidance Service | 8083 | `/api/solicitudes` |
+| Notification Service | 8084 | `/api/notificaciones` |
+| Analytics Service | 8085 | `/api/metricas` |
+| Import Service | 8086 | `/api/importaciones` |
+| API Gateway | 8080 | entrada única |
+| Discovery Server | 8761 | Eureka |
 
--hotfix/(nombre): Se crean desde main y se integran allí a ravés de pull request.
+## Base de datos
 
-### Nombramiento de commmits:
-tipo(lugar de la acción):detalles
+MySQL 8 es el motor persistente del backend.
 
-feat: nueva funcionalidad.
-fix: Solucionar un problema.
-docs: documentación.
-chore: mantenimiento o configuración.
+Docker Compose crea una base lógica por microservicio:
 
-### Revisión de cambios
+```text
+authdb
+academicdb
+guidancedb
+notificationdb
+analyticsdb
+importdb
+```
 
-Antes de integrar cambios se revisa el diff y se comprueba que el proyecto compile correctamente.
+El perfil H2 existe para pruebas y ejecución rápida. La configuración Oracle anterior ya no forma parte de la decisión vigente del backend.
 
-Las features se integran a develop mediante Pull Request como mencioné anteriormente.
+## Perfiles
 
-Los hotfix se integran a main mediante Pull Request y luego se sincronizan con develop como mencioné anteriorment.
+Por defecto:
 
-## Evidencias
+```bash
+mvn spring-boot:run
+```
 
-- Se utilizó GitFlow con main, develop, feature y hotfix.
-- Se realizaron Pull Requests para integrar los cambios.
-- Se configuró GitHub Actions.
-- Hola Mundo CI se ejecuta con push a develop y pull request a main.
-- El workflow de Java ejecuta mvn verify.
-- Se configuró JaCoCo para generar reportes de cobertura.
-- mvn verify finaliza correctamente con BUILD SUCCESS.
+usa el perfil `h2`.
 
-# Reflexiones
+Para MySQL:
 
-## ¿Que aprendí?
-Lo que aprendí fue a realizar flujo de versiones ordenadas de mi repositorio gracias a gitflow.
+```bash
+SPRING_PROFILES_ACTIVE=mysql \
+DB_HOST=localhost \
+DB_PORT=3306 \
+DB_NAME=academicdb \
+DB_USER=root \
+DB_PASSWORD=root \
+mvn spring-boot:run
+```
 
-## ¿Lo que yo practicaría más?
-Yo practicaría con una persona real, de tal forma que pudiera a través de palabras discutir la resolución de un conflicto.
+En Windows PowerShell se pueden definir las variables con `$env:NOMBRE="valor"`.
 
-## Uso de inteligencia artificial
+## Ejecución completa
 
-Se utilizó ChatGPT como herramienta de apoyo para comprender comandos de Git, el flujo GitFlow, la configuración de GitHub Actions y el diagnóstico de errores técnicos durante la actividad.
+Copiar variables de ejemplo:
 
-La reflexión individual y las conclusiones fueron redactadas por mí.
+```bash
+cp .env.example .env
+```
+
+Levantar infraestructura y servicios:
+
+```bash
+docker compose up --build
+```
+
+Detener:
+
+```bash
+docker compose down
+```
+
+Eliminar también el volumen MySQL:
+
+```bash
+docker compose down -v
+```
+
+## Contrato CRUD EP02
+
+Cada microservicio evaluable expone un recurso principal con el patrón:
+
+```text
+GET    /api/<recurso>       -> 200
+GET    /api/<recurso>/{id}  -> 200 / 404
+POST   /api/<recurso>       -> 201 / 400
+PUT    /api/<recurso>/{id}  -> 200 / 400 / 404
+DELETE /api/<recurso>/{id}  -> 204 / 404
+```
+
+Las respuestas de error se homogeneizan mediante `@RestControllerAdvice`.
+
+## Swagger y OpenAPI
+
+En cada servicio:
+
+```text
+http://localhost:<puerto>/swagger-ui/index.html
+http://localhost:<puerto>/v3/api-docs
+http://localhost:<puerto>/v3/api-docs.yaml
+```
+
+## Pruebas
+
+Verificación completa desde la raíz:
+
+```bash
+mvn clean verify
+```
+
+Empaquetado:
+
+```bash
+mvn clean package
+```
+
+Los reportes JaCoCo se generan dentro de `target/site/jacoco/` de los módulos que ejecutan pruebas.
+
+## Postman
+
+La colección EP02 se almacena en:
+
+```text
+postman/EduBio360-EP02.postman_collection.json
+```
+
+Debe cubrir, por servicio:
+
+1. crear -> 201;
+2. listar -> 200;
+3. obtener por id -> 200;
+4. obtener inexistente -> 404;
+5. crear inválido -> 400;
+6. actualizar -> 200;
+7. eliminar -> 204.
+
+## GitFlow
+
+- `main`: versión estable.
+- `develop`: integración.
+- `feature/*`: funcionalidades y tareas.
+- `hotfix/*`: correcciones urgentes.
+
+La EP02 se desarrolla mediante ramas `feature/*` y Pull Requests hacia `develop`.
+
+## Pauta y trazabilidad
+
+- Pauta consolidada: `docs/PAUTA_EVALUACION_EP02_JVY0101.md`
+- Arquitectura actual: `docs/ARQUITECTURA_FASE_1.md`
+- Estado de cumplimiento: `docs/CUMPLIMIENTO_EP02.md`
+
+La regla de trabajo es:
+
+```text
+pauta -> estado real -> implementación -> prueba -> evidencia
+```
+
+Una funcionalidad no se marca como cumplida solamente porque exista código. Debe existir evidencia verificable.
