@@ -164,11 +164,16 @@ Variables observadas para el perfil MySQL:
 
 ### Relación con la arquitectura existente de EduBío 360
 
-EduBío 360 ya tenía definido Oracle como motor final del proyecto anual. **La EP02 no elimina ni reemplaza esa decisión.**
+La decisión vigente del backend es **MySQL 8**. La configuración Oracle anterior queda retirada de esta implementación.
 
-Para cumplir IE4, la entrega EP02 debe incorporar el perfil MySQL exigido por esta evaluación, manteniendo H2 para pruebas rápidas. Oracle continúa siendo la decisión del diseño final cuando corresponda a Taller de Bases de Datos y a la evolución anual.
+Para cumplir IE4 y mantener una ejecución reproducible:
 
-Por tanto, una configuración MySQL agregada para EP02 se considera un perfil de ejecución de la evaluación, no un rediseño completo del proyecto.
+- MySQL es la base relacional persistente.
+- H2 se conserva únicamente como perfil rápido de pruebas y desarrollo.
+- Docker Compose levanta MySQL y las bases lógicas de los seis microservicios.
+- Cada microservicio conserva ownership de sus datos y no accede directamente a tablas de otro servicio.
+
+Toda respuesta futura sobre la base de datos del backend debe asumir MySQL, salvo que una pauta distinta indique expresamente otra tecnología.
 
 ---
 
@@ -370,7 +375,7 @@ debe contestarse siguiendo este orden:
 3. **Adaptación al dominio que ya existe.**
 4. **Evidencia necesaria para demostrar cumplimiento.**
 
-No se debe sustituir una decisión existente del proyecto salvo que la pauta la contradiga explícitamente para esta evaluación. En caso de contradicción, se implementará lo requerido para EP02 de la forma menos invasiva posible y se documentará la coexistencia con la arquitectura anual.
+No se debe sustituir una decisión existente del proyecto salvo que la pauta o una decisión posterior explícita del equipo la modifique. Para esta EP02, la decisión posterior ya está tomada: **MySQL reemplaza a Oracle en el backend**.
 
 ---
 
