@@ -16,10 +16,28 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: "21"
           cache: maven
+
       - name: Maven clean verify
         run: mvn -B clean verify
+
+      - name: Validar Docker Compose
+        run: docker compose config --quiet
+
+      - name: Mostrar artefactos JAR
+        run: find . -path "*/target/*.jar" -type f -print
+
+      - name: Guardar reportes y JAR
+        uses: actions/upload-artifact@v4
+        with:
+          name: ep02-evidencias
+          if-no-files-found: warn
+          path: |
+            **/target/*.jar
+            **/target/site/jacoco/**
+            **/target/surefire-reports/**
