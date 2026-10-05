@@ -55,6 +55,21 @@ class UserServiceTest {
     }
 
     @Test
+    void creaUsuarioInactivo() {
+        when(users.findByEmailIgnoreCase("inactive@example.test")).thenReturn(Optional.empty());
+        when(encoder.encode(anyString())).thenReturn("hash");
+        when(users.save(any(UserEntity.class))).thenAnswer(i -> i.getArgument(0));
+
+        UserRequest request = new UserRequest(
+                " Inactive@Example.Test ",
+                "sample-value-123",
+                "STUDENT",
+                false);
+
+        assertFalse(service.crear(request).active());
+    }
+
+    @Test
     void registraYAutentica() {
         when(users.findByEmailIgnoreCase("student@example.test")).thenReturn(Optional.empty());
         when(encoder.encode(anyString())).thenReturn("hash");
@@ -79,5 +94,19 @@ class UserServiceTest {
 
         when(users.findById(99L)).thenReturn(Optional.empty());
         assertThrows(ResponseStatusException.class, () -> service.obtener(99L));
+    }
+
+    @Test
+    void rechazaLoginDeUsuarioInactivoYCorreoInexistente() {
+        user.actualizar("user@example.test", "hash", "STUDENT", false);
+        when(users.findByEmailIgnoreCase("user@example.test")).thenReturn(Optional.of(user));
+
+        assertThrows(ResponseStatusException.class,
+                () -> service.login("user@example.test", "sample-value-123"));
+        verify(encoder, never()).matches(anyString(), anyString());
+
+        when(users.findByEmailIgnoreCase("missing@example.test")).thenReturn(Optional.empty());
+        assertThrows(ResponseStatusException.class,
+                () -> service.login("missing@example.test", "sample-value-123"));
     }
 }
