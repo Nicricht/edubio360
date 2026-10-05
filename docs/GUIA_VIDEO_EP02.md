@@ -1,112 +1,169 @@
-# Guía de video EP02 — EduBío 360
+# Guion definitivo video EP02 — EduBío 360
 
-Duración objetivo: **6 a 7 minutos**. La pauta permite 3–8 minutos.
+Duración objetivo: **6 minutos 30 segundos**. La pauta permite entre 3 y 8 minutos.
 
-> El video debe demostrar el sistema real. No basta leer el README o mostrar código estático.
+La idea del video es demostrar el backend funcionando. No conviene leer código durante varios minutos. Lo importante es mostrar evidencia mientras se explica qué hace cada parte.
 
-## 0:00–0:30 — Presentación
+---
 
-- Nombre del proyecto: EduBío 360.
-- Problema: centralizar y comparar información de Educación Superior del Biobío y apoyar orientación.
-- Backend: Java 21 + Spring Boot.
-- Seis microservicios de negocio: Auth, Academic, Guidance, Notification, Analytics e Import.
-- Infraestructura: Gateway, Eureka, RabbitMQ, MySQL 8 y Docker Compose.
+## Antes de grabar
 
-Frase técnica sugerida:
+Tener abierto:
 
-“EduBío 360 está construido como un backend de microservicios. Para esta evaluación usamos MySQL 8 como persistencia relacional y mantenemos H2 solamente para pruebas rápidas.”
+1. VS Code con el repositorio en `develop`.
+2. Terminal en la raíz del proyecto.
+3. Docker Desktop.
+4. Postman con `postman/EduBio360-EP02.postman_collection.json`.
+5. Navegador con:
+   - GitHub Actions;
+   - Pull Request #13;
+   - Swagger de Academic Service.
+6. Una terminal lista para consultar MySQL.
 
-## 0:30–1:20 — Clonar y levantar
-
-Mostrar:
+Si el proyecto no está levantado:
 
 ```bash
-git clone <URL-DEL-REPO>
-cd edubio360
 docker compose up --build
 ```
 
-Explicar que Docker Compose levanta:
+En Windows PowerShell se puede usar exactamente el mismo comando.
 
-- MySQL 8.
-- RabbitMQ.
-- Eureka.
-- Auth Service.
-- Academic Service.
-- Guidance Service.
-- Notification Service.
-- Analytics Service.
-- Import Service.
-- API Gateway.
+---
 
-Mostrar que los servicios quedan arriba y, si hay tiempo, abrir Eureka o Actuator.
+# 0:00–0:35 — Presentación
 
-## 1:20–3:20 — CRUD y manejo de errores en Postman
+## Mostrar
 
-Importar:
+- README del repositorio.
+- Tabla de microservicios y puertos.
 
-```text
-postman/EduBio360-EP02.postman_collection.json
+## Decir
+
+> “Este proyecto es EduBío 360. El objetivo es centralizar información de educación superior de la Región del Biobío y permitir trabajar con oferta académica, orientación, notificaciones, métricas e importación de datos.
+>
+> Para el backend usamos Java 21 con Spring Boot y Maven. La solución está separada en seis microservicios de negocio: Auth, Academic, Guidance, Notification, Analytics e Import. Además tenemos API Gateway, Eureka, RabbitMQ y MySQL.”
+
+No enumerar librerías una por una. Basta mencionar las que aparecen después durante la demostración.
+
+---
+
+# 0:35–1:15 — Arquitectura y ejecución
+
+## Mostrar
+
+Abrir `docker-compose.yml`.
+
+Después ejecutar:
+
+```bash
+docker compose ps
 ```
 
-Demostrar al menos en un servicio:
+## Decir
 
-1. POST válido → **201**.
-2. GET lista → **200**.
-3. GET por id → **200**.
-4. PUT → **200**.
-5. DELETE → **204**.
-6. POST inválido → **400** con detalle JSON.
-7. GET inexistente → **404**.
+> “La aplicación se levanta con Docker Compose. Aquí tengo MySQL, RabbitMQ, Eureka y los microservicios.
+>
+> Los servicios de negocio usan los puertos 8081 al 8086. Cada uno tiene una responsabilidad distinta y mantiene su propia persistencia lógica.”
 
-Después mostrar rápidamente uno o dos casos de otro microservicio.
+Mostrar rápidamente que los contenedores están levantados.
 
-Explicar:
+No quedarse leyendo todo el archivo Docker Compose.
 
-“Las validaciones se realizan con Jakarta Validation y los errores se homogeneizan con `@RestControllerAdvice`, por eso el cliente recibe respuestas JSON consistentes.”
+---
 
-## 3:20–4:20 — MySQL y persistencia
+# 1:15–2:45 — CRUD REST con Postman
 
-Mostrar `application-mysql.yml` de un servicio y señalar:
+## Mostrar
 
-- URL JDBC MySQL.
-- driver `com.mysql.cj.jdbc.Driver`.
-- variables `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`.
+En Postman abrir la carpeta **Academic Service**.
 
-Luego mostrar MySQL con una tabla creada por JPA y un registro creado desde Postman.
+Ejecutar en este orden:
 
-Explicar:
+1. crear oferta;
+2. listar;
+3. obtener por id;
+4. actualizar;
+5. obtener inexistente;
+6. crear inválido;
+7. eliminar.
 
-“Cada microservicio mantiene ownership de sus datos. En Docker usamos una instancia MySQL con bases lógicas separadas por servicio.”
+## Decir
 
-Bases:
+Mientras se ejecutan:
 
-```text
-authdb
-academicdb
-guidancedb
-notificationdb
-analyticsdb
-importdb
+> “Voy a demostrar el CRUD usando Academic Service. El recurso principal es `/api/ofertas`.”
+
+En POST:
+
+> “Al crear una oferta válida obtenemos HTTP 201, que indica que el recurso fue creado.”
+
+En GET:
+
+> “El listado devuelve 200 y el GET por id también devuelve 200 cuando el recurso existe.”
+
+En PUT:
+
+> “La actualización utiliza PUT y responde 200.”
+
+En GET inexistente:
+
+> “También manejamos errores. Si consulto un id que no existe recibo 404.”
+
+En POST inválido:
+
+> “Los DTO tienen validaciones con Jakarta Validation. Si envío datos incompletos se responde 400.”
+
+En DELETE:
+
+> “Finalmente el DELETE responde 204 porque la operación fue correcta y no necesita devolver contenido.”
+
+Después mostrar brevemente el resultado completo de la colección:
+
+> “La colección tiene siete casos por cada uno de los seis microservicios. Son 42 requests en total.”
+
+No ejecutar manualmente los 42 uno por uno durante el video.
+
+---
+
+# 2:45–3:35 — MySQL y persistencia real
+
+## Mostrar
+
+En terminal:
+
+```bash
+docker compose exec mysql mysql -uroot -proot -e "SHOW DATABASES;"
 ```
 
-## 4:20–5:05 — Relaciones JPA y arquitectura en capas
+Después:
 
-Mostrar un ejemplo de relación, por ejemplo:
-
-```text
-Sede 1 ---- N OfertaAcademica
+```bash
+docker compose exec mysql mysql -uroot -proot academicdb -e "SHOW TABLES;"
 ```
 
-y en código:
+Y:
 
-- `@OneToMany(mappedBy = ...)`
-- `@ManyToOne`
-- `@JoinColumn`
-- `cascade`
-- `orphanRemoval`
+```bash
+docker compose exec mysql mysql -uroot -proot academicdb -e "SELECT * FROM ofertas_academicas LIMIT 5;"
+```
 
-Después mostrar la estructura:
+## Decir
+
+> “Para esta evaluación usamos MySQL 8 como base de datos persistente.
+>
+> Tenemos una base lógica por microservicio: authdb, academicdb, guidancedb, notificationdb, analyticsdb e importdb.
+>
+> Acá se puede ver que Academic Service realmente está persistiendo en MySQL. La tabla `ofertas_academicas` fue generada y administrada mediante JPA e Hibernate.”
+
+Si el SELECT no tiene registros porque ya se eliminó el creado en Postman, crear una oferta antes de esta parte o ejecutar el SELECT antes del DELETE.
+
+---
+
+# 3:35–4:25 — Capas y relaciones JPA
+
+## Mostrar
+
+En `academic-service/src/main/java/cl/edubio360/academic/` mostrar:
 
 ```text
 controller/
@@ -117,40 +174,72 @@ dto/
 config/
 ```
 
-Explicar brevemente la responsabilidad de cada capa.
+Luego abrir:
 
-## 5:05–5:45 — Maven, pruebas y JAR
+- `model/Sede.java`
+- `model/OfertaAcademica.java`
 
-Ejecutar:
+## Decir
+
+> “Cada microservicio está separado en capas. El controller recibe las peticiones HTTP, el service contiene la lógica, el repository trabaja con JPA y el model representa las entidades persistentes. Los DTO se usan para los datos de entrada y salida.”
+
+Mostrar `@OneToMany` y `@ManyToOne`.
+
+> “También tenemos relaciones JPA reales. En este caso una sede puede tener muchas ofertas académicas y cada oferta pertenece a una sede. Por eso tenemos una relación uno a muchos y su relación inversa muchos a uno mediante una clave foránea.”
+
+No explicar todas las relaciones de los seis servicios. Una bien explicada demuestra el concepto.
+
+---
+
+# 4:25–5:10 — Pruebas, Cucumber y JaCoCo
+
+## Mostrar
+
+Abrir GitHub Actions en la ejecución verde de `develop`.
+
+Mostrar que pasaron:
+
+- Maven clean verify;
+- Docker Compose;
+- mysql-smoke.
+
+Si se quiere demostrar desde terminal:
 
 ```bash
 mvn clean verify
-mvn clean package
 ```
 
-Mostrar **BUILD SUCCESS**.
+No es obligatorio esperar toda la ejecución durante la grabación si GitHub Actions ya muestra la evidencia verde.
 
-Mostrar los JAR en `target/`.
+## Decir
 
-Explicar que las pruebas incluyen:
+> “Las pruebas se ejecutan automáticamente con Maven. Tenemos JUnit y Mockito para servicios, MockMvc para controladores, Cucumber para escenarios de comportamiento y JaCoCo para cobertura.
+>
+> En GitHub Actions se ejecuta `mvn clean verify`, se valida Docker Compose y después se hace un smoke test real con MySQL.”
 
-- JUnit.
-- Mockito.
-- MockMvc.
-- Cucumber.
-- JaCoCo.
+Mostrar el resultado Newman si está visible en Actions:
 
-## 5:45–6:20 — Swagger / OpenAPI
+> “Además se ejecuta automáticamente la colección Postman con Newman. En la última ejecución fueron 42 requests, 42 assertions y cero fallos.”
 
-Abrir, por ejemplo:
+---
+
+# 5:10–5:45 — Swagger y OpenAPI
+
+## Mostrar
+
+Abrir:
 
 ```text
 http://localhost:8082/swagger-ui/index.html
 ```
 
-Mostrar endpoints y esquemas.
+Expandir uno o dos endpoints de `/api/ofertas`.
 
-También mencionar:
+## Decir
+
+> “Cada servicio expone documentación OpenAPI con Swagger. Desde aquí podemos revisar los endpoints, parámetros, cuerpos de petición y respuestas sin tener que buscar cada ruta directamente en el código.”
+
+Mencionar brevemente:
 
 ```text
 /v3/api-docs
@@ -158,37 +247,104 @@ También mencionar:
 /redoc.html
 ```
 
-## 6:20–6:50 — Git y cierre
+No es necesario abrir las tres.
 
-Mostrar:
+---
 
-- `main`
-- `develop`
-- `feature/ep02-mysql-cumplimiento`
-- Pull Request de integración.
+# 5:45–6:15 — GitFlow
 
-Cerrar con:
+## Mostrar
 
-“Con esto demostramos endpoints REST funcionales, arquitectura en capas, persistencia MySQL, relaciones JPA, validaciones, manejo homogéneo de errores, pruebas automatizadas, documentación OpenAPI, empaquetado Maven, Docker y trazabilidad Git.”
+En GitHub:
 
-## Audio
+- rama `main`;
+- rama `develop`;
+- Pull Request #13 ya fusionado.
 
-Para IE12:
+## Decir
 
-- usar micrófono cercano;
-- grabar en un lugar silencioso;
-- evitar música;
-- hablar a velocidad normal;
-- no leer literalmente todo el guion;
-- mostrar cada evidencia mientras se explica.
+> “Para el control de versiones usamos una estructura basada en main, develop y ramas feature.
+>
+> Esta implementación se trabajó en `feature/ep02-mysql-cumplimiento` y después de pasar las verificaciones se integró mediante Pull Request a develop.”
 
-## Checklist antes de grabar
+Mostrar el estado verde del PR o de Actions.
 
-- `docker compose up --build` funciona.
-- Postman importado.
-- MySQL visible y con tablas.
-- `mvn clean verify` en verde.
-- JAR generado.
-- Swagger abre.
-- GitHub muestra ramas y PR.
-- Video entre 3 y 8 minutos.
+---
+
+# 6:15–6:35 — Cierre
+
+## Decir
+
+> “Con esto queda demostrado el CRUD REST, la arquitectura por capas, persistencia en MySQL, relaciones JPA, validaciones y manejo de errores, pruebas automatizadas, documentación OpenAPI, Docker y trazabilidad con Git.
+>
+> Esa es la implementación actual del backend de EduBío 360 para la EP02.”
+
+Terminar ahí. No agregar una conclusión larga.
+
+---
+
+# Preguntas que podría hacer el profesor
+
+## ¿Por qué usan Service si ya existe Repository?
+
+Respuesta corta:
+
+> “Porque el repository se encarga del acceso a datos y el service concentra la lógica de negocio. Así el controller no queda mezclado con persistencia.”
+
+## ¿Qué hace JPA?
+
+> “JPA permite mapear objetos Java a tablas relacionales. En nuestro proyecto usamos Hibernate como implementación y JpaRepository para las operaciones de persistencia.”
+
+## ¿Por qué MySQL?
+
+> “Porque para esta entrega necesitábamos demostrar persistencia relacional real y reproducible. MySQL está integrado mediante perfiles de Spring y Docker Compose.”
+
+## ¿Para qué usan H2?
+
+> “H2 queda como perfil rápido para pruebas o desarrollo local. La persistencia evaluada se verifica con MySQL.”
+
+## ¿Qué diferencia hay entre 400 y 404?
+
+> “400 significa que la petición enviada no cumple lo esperado, por ejemplo por validaciones. 404 significa que el recurso solicitado no existe.”
+
+## ¿Qué hace JaCoCo?
+
+> “Mide qué líneas del código son ejecutadas por las pruebas y permite controlar la cobertura durante `mvn verify`.”
+
+## ¿Qué hace MockMvc?
+
+> “Permite probar los controladores HTTP de Spring sin tener que levantar manualmente todo el servidor.”
+
+## ¿Qué hace Cucumber?
+
+> “Permite expresar escenarios de comportamiento y comprobarlos automáticamente con pasos de prueba.”
+
+## ¿Qué aporta Docker Compose?
+
+> “Permite levantar de forma reproducible la infraestructura y los servicios con una configuración común.”
+
+## ¿Por qué hay seis bases si usan una sola instancia MySQL?
+
+> “Usamos una instancia de MySQL en Docker, pero cada microservicio tiene una base lógica separada. Eso mantiene separado el ownership de datos por servicio.”
+
+---
+
+# Checklist final
+
+Antes de grabar verificar:
+
+- [ ] Docker Compose levantado.
+- [ ] Los seis servicios responden.
+- [ ] Postman importado.
+- [ ] Una oferta creada para mostrar persistencia.
+- [ ] MySQL visible.
+- [ ] Swagger abre en puerto 8082.
+- [ ] GitHub Actions muestra ejecución verde.
+- [ ] PR #13 aparece fusionado a `develop`.
+- [ ] Micrófono sin saturación ni ruido fuerte.
+- [ ] Video entre 6:00 y 7:00 minutos.
+- [ ] Escuchar el video completo antes de entregarlo.
+
+## Regla para hablar
+
+No memorizar cada palabra. Memorizar la idea de cada bloque y explicar mirando lo que aparece en pantalla. Si una frase sale distinta pero técnicamente correcta, está bien.
