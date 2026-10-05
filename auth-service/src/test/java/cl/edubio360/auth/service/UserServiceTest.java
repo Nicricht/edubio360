@@ -97,6 +97,25 @@ class UserServiceTest {
     }
 
     @Test
+    void actualizaManteniendoElMismoCorreo() throws Exception {
+        var id = UserEntity.class.getDeclaredField("id");
+        id.setAccessible(true);
+        id.set(user, 1L);
+
+        when(users.findById(1L)).thenReturn(Optional.of(user));
+        when(users.findByEmailIgnoreCase("user@example.test")).thenReturn(Optional.of(user));
+        when(encoder.encode("sample-value-456")).thenReturn("hash-2");
+
+        UserRequest request = new UserRequest(
+                "USER@EXAMPLE.TEST",
+                "sample-value-456",
+                "STUDENT",
+                true);
+
+        assertEquals("user@example.test", service.actualizar(1L, request).email());
+    }
+
+    @Test
     void rechazaLoginDeUsuarioInactivoYCorreoInexistente() {
         user.actualizar("user@example.test", "hash", "STUDENT", false);
         when(users.findByEmailIgnoreCase("user@example.test")).thenReturn(Optional.of(user));
