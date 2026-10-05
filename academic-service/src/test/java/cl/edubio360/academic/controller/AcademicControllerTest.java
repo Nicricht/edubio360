@@ -2,6 +2,7 @@ package cl.edubio360.academic.controller;
 
 import cl.edubio360.academic.config.GlobalExceptionHandler;
 import cl.edubio360.academic.dto.OfertaResponse;
+import cl.edubio360.academic.dto.SedeResponse;
 import cl.edubio360.academic.service.AcademicService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,6 +53,16 @@ class AcademicControllerTest {
 
         mvc.perform(post("/api/ofertas").contentType("application/json").content("{"))
                 .andExpect(status().isBadRequest());
+
+        when(service.listarSedes()).thenReturn(List.of(
+                new SedeResponse(1L, "Sede", "Institución", "Concepción")));
+        mvc.perform(get("/api/sedes"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].nombre").value("Sede"));
+
+        when(service.listar("info")).thenReturn(List.of(response()));
+        mvc.perform(get("/api/ofertas").param("q", "info"))
+                .andExpect(status().isOk());
 
         when(service.actualizar(eq(1L), any())).thenReturn(response());
         mvc.perform(put("/api/ofertas/1").contentType("application/json")
