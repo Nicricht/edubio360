@@ -4,6 +4,8 @@ server:
 spring:
   application:
     name: analytics-service
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:h2}
 
 eureka:
   client:

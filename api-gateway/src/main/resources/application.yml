@@ -7,10 +7,14 @@ spring:
   cloud:
     gateway:
       routes:
-        - id: auth-service
+        - id: auth-service-auth
           uri: lb://auth-service
           predicates:
             - Path=/api/auth/**
+        - id: auth-service-usuarios
+          uri: lb://auth-service
+          predicates:
+            - Path=/api/usuarios/**
         - id: academic-service-ofertas
           uri: lb://academic-service
           predicates:
@@ -30,7 +34,7 @@ spring:
         - id: analytics-service
           uri: lb://analytics-service
           predicates:
-            - Path=/api/analytics/**
+            - Path=/api/analytics/**,/api/metricas/**
         - id: import-service
           uri: lb://import-service
           predicates:
@@ -42,6 +46,7 @@ security:
 
 eureka:
   client:
+    registry-fetch-interval-seconds: 5
     service-url:
       defaultZone: ${EUREKA_URL:http://localhost:8761/eureka/}
 

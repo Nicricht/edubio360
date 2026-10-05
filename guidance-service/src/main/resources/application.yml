@@ -4,19 +4,13 @@ server:
 spring:
   application:
     name: guidance-service
-  datasource:
-    url: jdbc:h2:mem:guidance;MODE=Oracle;DB_CLOSE_DELAY=-1;DATABASE_TO_UPPER=false
-    username: sa
-    password:
-  jpa:
-    hibernate:
-      ddl-auto: create-drop
-    open-in-view: false
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:h2}
   rabbitmq:
     host: ${RABBITMQ_HOST:localhost}
     port: ${RABBITMQ_PORT:5672}
     username: ${RABBITMQ_USER:edubio}
-    password: ${RABBITMQ_PASSWORD:edubio123}
+    password: ${RABBITMQ_PASSWORD:}
 
 resilience4j:
   circuitbreaker:

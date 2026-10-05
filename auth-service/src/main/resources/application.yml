@@ -4,14 +4,8 @@ server:
 spring:
   application:
     name: auth-service
-  datasource:
-    url: jdbc:h2:mem:auth;MODE=Oracle;DB_CLOSE_DELAY=-1;DATABASE_TO_UPPER=false
-    username: sa
-    password:
-  jpa:
-    hibernate:
-      ddl-auto: create-drop
-    open-in-view: false
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:h2}
 
 security:
   jwt:
