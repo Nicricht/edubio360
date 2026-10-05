@@ -44,6 +44,9 @@ class AcademicServiceTest {
         when(ofertas.findByCarreraContainingIgnoreCaseOrSedeInstitucionContainingIgnoreCase("info", "info"))
                 .thenReturn(List.of(oferta));
         assertEquals(1, service.listar(" info ").size());
+
+        assertEquals(1, service.listar("   ").size());
+        verify(ofertas, times(2)).findAll();
     }
 
     @Test
