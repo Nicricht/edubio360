@@ -131,4 +131,11 @@ done
 assert_status 204 -X DELETE "http://localhost:8082/api/ofertas/$academic_id"
 assert_status 204 -X DELETE "http://localhost:8083/api/solicitudes/$guidance_id"   -H "X-User-Email: student@example.test" -H "X-User-Role: STUDENT"
 
-echo "[SUCCESS] Smoke MySQL EP02 completado."
+echo "[EP02] Ejecutando colección Postman con Newman..."
+docker run --rm --network host \
+  -v "$PWD:/etc/newman" \
+  postman/newman:alpine run /etc/newman/postman/EduBio360-EP02.postman_collection.json \
+  --reporters cli,json \
+  --reporter-json-export /etc/newman/artifacts/newman-report.json
+
+echo "[SUCCESS] Smoke MySQL + Postman EP02 completado."
