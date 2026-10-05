@@ -1,41 +1,77 @@
-# Arquitectura implementada - Fase 1
+# Arquitectura implementada - Fase 1 / EP02
 
 ## Objetivo
 
-La primera fase prioriza un corte vertical demostrable sobre el flujo de orientación, manteniendo los límites de dominio definidos para EduBío 360.
+EduBío 360 mantiene los límites de dominio definidos originalmente y adapta su implementación a la pauta EP02 de JVY0101. La evaluación se construye sobre el sistema existente: no se reemplaza el dominio ni se crean microservicios artificiales.
 
-## Implementado
+## Componentes
 
 - Spring Cloud Gateway como entrada única.
 - Eureka para registro y descubrimiento.
 - Auth Service con BCrypt y JWT.
-- Academic Service con catálogo mínimo consultable.
-- Guidance Service con creación, consulta propia, cancelación y confirmación.
-- Validación síncrona Guidance -> Academic mediante OpenFeign.
-- Resilience4j sobre la validación de Academic.
-- RabbitMQ para publicar `orientacion.confirmada`, con retry básico y DLQ en el consumidor de notificaciones.
-- Notification Service como consumidor del evento.
-- Analytics Service e Import Service con endpoints mínimos para mantener sus fronteras de dominio.
-- Actuator en todos los servicios.
-- Docker Compose para levantar la arquitectura local.
+- Academic Service para catálogo académico.
+- Guidance Service para solicitudes de orientación.
+- Notification Service para notificaciones y consumo de eventos.
+- Analytics Service para métricas.
+- Import Service para procesos de importación.
+- OpenFeign y Resilience4j entre Guidance y Academic.
+- RabbitMQ para eventos asíncronos.
+- Actuator en los servicios.
+- Docker Compose para ejecución local reproducible.
 
-## Persistencia local
+## Persistencia
 
-La fase 1 usa H2 en Auth, Academic y Guidance para que el repositorio pueda ejecutarse de forma inmediata. Esto no reemplaza la decisión de Oracle del diseño final. La migración prevista mantiene ownership lógico por schema:
+La decisión vigente para el backend es **MySQL 8**.
 
-- `AUTH_SCHEMA`
-- `ACADEMIC_SCHEMA`
-- `GUIDANCE_SCHEMA`
-- `ANALYTICS_SCHEMA`
+Cada microservicio de negocio mantiene ownership de sus datos mediante una base lógica propia dentro de la instancia MySQL utilizada por Docker Compose:
 
-## Pendiente para siguientes fases
+- `authdb`
+- `academicdb`
+- `guidancedb`
+- `notificationdb`
+- `analyticsdb`
+- `importdb`
 
-- Modelo Oracle definitivo y scripts DDL/3FN.
-- Administración completa de usuarios y roles.
-- Estados REPROGRAMADA, RECHAZADA, COMPLETADA e INASISTENCIA con historial formal.
-- Informes de orientación.
-- Políticas de reintento/DLQ extendidas para otros eventos y consumidores.
-- ETL real del Excel de matrículas.
-- Read model y cálculos reales de Analytics.
-- OpenAPI y pruebas de integración más amplias.
-- Despliegue en AWS.
+Para pruebas y ejecución rápida se conserva el perfil **H2 en memoria**, configurado en modo compatible con MySQL. H2 no sustituye la persistencia evaluada; MySQL es el motor relacional de la EP02 y del backend vigente.
+
+## Estructura por servicio
+
+Los microservicios evaluables siguen la organización:
+
+```text
+controller/
+service/
+repository/
+model/
+dto/
+config/
+```
+
+Los controladores exponen REST, los servicios contienen lógica de negocio, los repositorios usan Spring Data JPA, los modelos representan persistencia y relaciones, y `config/` centraliza manejo de errores y configuración propia del servicio.
+
+## Relaciones JPA implementadas
+
+- Auth: Usuario -> Roles.
+- Academic: Sede -> Ofertas académicas.
+- Guidance: Solicitud -> Historial.
+- Notification: Notificación -> Envíos.
+- Analytics: Métrica -> Puntos de métrica.
+- Import: Importación -> Errores de importación.
+
+Las relaciones usan `@OneToMany` / `@ManyToOne`, `mappedBy`, `@JoinColumn`, cascade y orphan removal donde corresponde.
+
+## Prioridad EP02
+
+La prioridad hasta cerrar la evaluación es:
+
+1. CRUD REST completo.
+2. MySQL persistente.
+3. Relaciones JPA.
+4. Validaciones y errores homogéneos.
+5. OpenAPI/Swagger.
+6. Postman.
+7. Pruebas automáticas y JaCoCo.
+8. Docker Compose.
+9. JAR ejecutable.
+10. README/evidencias.
+11. Video final.
