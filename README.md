@@ -171,6 +171,17 @@ Debe cubrir, por servicio:
 
 La EP02 se desarrolla mediante ramas `feature/*` y Pull Requests hacia `develop`.
 
+## Documentación por microservicio
+
+Cada servicio de negocio tiene su propio README con puerto, endpoints, perfiles de base de datos, comandos de ejecución, pruebas y rutas de documentación:
+
+- [Auth Service](auth-service/README.md)
+- [Academic Service](academic-service/README.md)
+- [Guidance Service](guidance-service/README.md)
+- [Notification Service](notification-service/README.md)
+- [Analytics Service](analytics-service/README.md)
+- [Import Service](import-service/README.md)
+
 ## Pauta y trazabilidad
 
 - Pauta consolidada: `docs/PAUTA_EVALUACION_EP02_JVY0101.md`
