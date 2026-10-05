@@ -15,7 +15,7 @@ La verificación final de backend se ejecutó en GitHub Actions sobre los seis m
 | IE4 | 10% | CUMPLIDO | MySQL 8, perfiles application-mysql.yml, seis bases lógicas y Docker Compose |
 | IE5 | 10% | CUMPLIDO | CRUD JPA persistente verificado contra MySQL en los 6 servicios |
 | IE7 | 5% | CUMPLIDO | `mvn clean verify` exitoso, JAR generados y JaCoCo verificado |
-| IE10 | 5% | CUMPLIDO | README raíz, Docker Compose, scripts, puertos, endpoints, perfiles, pruebas y documentación OpenAPI/ReDoc |
+| IE10 | 5% | CUMPLIDO | README raíz + README por cada microservicio, Docker Compose, scripts, puertos, endpoints, perfiles, pruebas y documentación OpenAPI/ReDoc |
 | IE11 | 5% | PENDIENTE | Grabar video técnico de 3 a 8 minutos |
 | IE12 | 5% | PENDIENTE | Revisar calidad de audio del video antes de entregar |
 
