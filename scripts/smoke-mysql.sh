@@ -10,7 +10,7 @@ cleanup() {
 trap cleanup EXIT
 
 echo "[EP02] Construyendo y levantando MySQL + microservicios..."
-docker compose up -d --build   mysql rabbitmq discovery-server   auth-service academic-service guidance-service   notification-service analytics-service import-service
+docker compose up -d --build   mysql rabbitmq discovery-server   auth-service academic-service guidance-service   notification-service analytics-service import-service api-gateway
 
 wait_for() {
   local name="$1"
@@ -34,6 +34,7 @@ wait_for "Guidance" "http://localhost:8083/actuator/health"
 wait_for "Notification" "http://localhost:8084/actuator/health"
 wait_for "Analytics" "http://localhost:8085/actuator/health"
 wait_for "Import" "http://localhost:8086/actuator/health"
+wait_for "Gateway" "http://localhost:8080/actuator/health"
 
 echo "[EP02] Verificando bases MySQL..."
 for db in authdb academicdb guidancedb notificationdb analyticsdb importdb; do
@@ -66,6 +67,13 @@ assert_status() {
     return 1
   fi
 }
+
+echo "[EP02] Gateway + JWT..."
+gateway_token="$(curl -fsS -X POST "http://localhost:8080/api/auth/login"   -H "Content-Type: application/json"   -d '{"email":"student@edubio.local","password":"Student123!"}' | jq -r '.token')"
+test "$gateway_token" != "null"
+test -n "$gateway_token"
+assert_status 401 "http://localhost:8080/api/ofertas"
+assert_status 200 "http://localhost:8080/api/ofertas" -H "Authorization: Bearer $gateway_token"
 
 echo "[EP02] CRUD Auth..."
 auth_created="$(post_json "http://localhost:8081/api/usuarios"   '{"email":"ep02-ci@example.test","password":"sample-value-123","role":"STUDENT","active":true}')"
