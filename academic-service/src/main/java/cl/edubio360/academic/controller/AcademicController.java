@@ -2,7 +2,7 @@ package cl.edubio360.academic.controller;
 
 import cl.edubio360.academic.dto.OfertaRequest;
 import cl.edubio360.academic.dto.OfertaResponse;
-import cl.edubio360.academic.model.Sede;
+import cl.edubio360.academic.dto.SedeResponse;
 import cl.edubio360.academic.service.AcademicService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -47,7 +47,7 @@ public class AcademicController {
     }
 
     @GetMapping("/sedes")
-    public List<Sede> sedes() {
+    public List<SedeResponse> sedes() {
         return service.listarSedes();
     }
 }
