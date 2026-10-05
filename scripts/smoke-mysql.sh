@@ -69,11 +69,31 @@ assert_status() {
 }
 
 echo "[EP02] Gateway + JWT..."
-gateway_token="$(curl -fsS -X POST "http://localhost:8080/api/auth/login"   -H "Content-Type: application/json"   -d '{"email":"student@edubio.local","password":"Student123!"}' | jq -r '.token')"
-test "$gateway_token" != "null"
+gateway_token=""
+for i in $(seq 1 60); do
+  gateway_login="$(curl -sS -X POST "http://localhost:8080/api/auth/login" -H "Content-Type: application/json" -d '{"email":"student@edubio.local","password":"Student123!"}' || true)"
+  gateway_token="$(echo "$gateway_login" | jq -r '.token // empty' 2>/dev/null || true)"
+  if [ -n "$gateway_token" ]; then
+    echo "[OK] Gateway resolvió Auth mediante Eureka"
+    break
+  fi
+  sleep 2
+done
 test -n "$gateway_token"
+
 assert_status 401 "http://localhost:8080/api/ofertas"
-assert_status 200 "http://localhost:8080/api/ofertas" -H "Authorization: Bearer $gateway_token"
+
+gateway_academic_ready=0
+for i in $(seq 1 60); do
+  actual="$(curl -sS -o /tmp/ep02-gateway-academic.json -w "%{http_code}" "http://localhost:8080/api/ofertas" -H "Authorization: Bearer $gateway_token")"
+  if [ "$actual" = "200" ]; then
+    gateway_academic_ready=1
+    echo "[OK] Gateway resolvió Academic mediante Eureka"
+    break
+  fi
+  sleep 2
+done
+test "$gateway_academic_ready" = "1"
 
 echo "[EP02] CRUD Auth..."
 auth_created="$(post_json "http://localhost:8081/api/usuarios"   '{"email":"ep02-ci@example.test","password":"sample-value-123","role":"STUDENT","active":true}')"
