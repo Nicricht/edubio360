@@ -33,6 +33,7 @@ jobs:
         run: find . -path "*/target/*.jar" -type f -print
 
       - name: Guardar reportes y JAR
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: ep02-evidencias
