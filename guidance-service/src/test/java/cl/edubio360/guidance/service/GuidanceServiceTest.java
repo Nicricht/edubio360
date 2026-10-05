@@ -6,6 +6,7 @@ import cl.edubio360.guidance.dto.ActualizarSolicitudRequest;
 import cl.edubio360.guidance.dto.CrearSolicitudRequest;
 import cl.edubio360.guidance.model.SolicitudOrientacion;
 import cl.edubio360.guidance.repository.SolicitudRepository;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -104,4 +105,75 @@ class GuidanceServiceTest {
         when(repository.findById(99L)).thenReturn(Optional.empty());
         assertThrows(ResponseStatusException.class, () -> service.obtener(99L));
     }
+
+    @Test
+    void convierteErroresDeEstadoEnConflict() {
+        SolicitudOrientacion mockSolicitud = mock(SolicitudOrientacion.class);
+        when(repository.findById(10L)).thenReturn(Optional.of(mockSolicitud));
+        when(mockSolicitud.getEstudianteEmail()).thenReturn("student@example.test");
+
+        doThrow(new IllegalStateException("No editable"))
+                .when(mockSolicitud).actualizar(anyString(), any(LocalDateTime.class));
+
+        ActualizarSolicitudRequest update = new ActualizarSolicitudRequest(
+                "Nuevo motivo", LocalDateTime.now().plusDays(2));
+
+        ResponseStatusException actualizarError = assertThrows(
+                ResponseStatusException.class,
+                () -> service.actualizar(10L, "student@example.test", "STUDENT", update));
+        assertEquals(409, actualizarError.getStatusCode().value());
+
+        doThrow(new IllegalStateException("No cancelable"))
+                .when(mockSolicitud).cancelar();
+
+        ResponseStatusException cancelarError = assertThrows(
+                ResponseStatusException.class,
+                () -> service.cancelar(10L, "student@example.test", "STUDENT"));
+        assertEquals(409, cancelarError.getStatusCode().value());
+
+        doThrow(new IllegalStateException("No confirmable"))
+                .when(mockSolicitud).confirmar("orientador@example.test");
+
+        ResponseStatusException confirmarError = assertThrows(
+                ResponseStatusException.class,
+                () -> service.confirmar(10L, "orientador@example.test", "ORIENTADOR"));
+        assertEquals(409, confirmarError.getStatusCode().value());
+    }
+
+    @Test
+    void rechazaRolNulo() {
+        CrearSolicitudRequest request = new CrearSolicitudRequest(
+                1L, "Motivo", LocalDateTime.now().plusDays(1));
+
+        ResponseStatusException error = assertThrows(
+                ResponseStatusException.class,
+                () -> service.crear("student@example.test", null, request));
+
+        assertEquals(403, error.getStatusCode().value());
+    }
+
+    @Test
+    void fallaSiNoPuedeSerializarEventoDeConfirmacion() throws Exception {
+        ObjectMapper mapper = mock(ObjectMapper.class);
+        GuidanceService servicio = new GuidanceService(
+                repository, academicValidation, rabbitTemplate, mapper);
+
+        SolicitudOrientacion mockSolicitud = mock(SolicitudOrientacion.class);
+        when(repository.findById(20L)).thenReturn(Optional.of(mockSolicitud));
+        when(mockSolicitud.getId()).thenReturn(20L);
+        when(mockSolicitud.getEstudianteEmail()).thenReturn("student@example.test");
+        when(mockSolicitud.getOrientadorEmail()).thenReturn("orientador@example.test");
+        when(mockSolicitud.getEstado()).thenReturn("CONFIRMADA");
+
+        when(mapper.writeValueAsString(any()))
+                .thenThrow(new JsonProcessingException("error de prueba") {});
+
+        IllegalStateException error = assertThrows(
+                IllegalStateException.class,
+                () -> servicio.confirmar(20L, "orientador@example.test", "ORIENTADOR"));
+
+        assertEquals("No fue posible construir el evento de confirmación", error.getMessage());
+        verify(rabbitTemplate, never()).convertAndSend(anyString(), anyString(), anyString());
+    }
+
 }
