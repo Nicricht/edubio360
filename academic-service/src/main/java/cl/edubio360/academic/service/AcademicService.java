@@ -2,6 +2,7 @@ package cl.edubio360.academic.service;
 
 import cl.edubio360.academic.dto.OfertaRequest;
 import cl.edubio360.academic.dto.OfertaResponse;
+import cl.edubio360.academic.dto.SedeResponse;
 import cl.edubio360.academic.model.OfertaAcademica;
 import cl.edubio360.academic.model.Sede;
 import cl.edubio360.academic.repository.OfertaRepository;
@@ -57,8 +58,10 @@ public class AcademicService {
         ofertas.delete(oferta);
     }
 
-    public List<Sede> listarSedes() {
-        return sedes.findAll();
+    public List<SedeResponse> listarSedes() {
+        return sedes.findAll().stream()
+                .map(s -> new SedeResponse(s.getId(), s.getNombre(), s.getInstitucion(), s.getComuna()))
+                .toList();
     }
 
     private OfertaAcademica get(Long id) {
