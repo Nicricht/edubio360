@@ -1,5 +1,261 @@
 # Pauta de Evaluación EP02 — JVY0101
 
+> [!IMPORTANT]
+> **DOCUMENTO MAESTRO PARA CUALQUIER CHAT NUEVO, INTEGRANTE O DOCENTE.**
+> Antes de proponer cambios, responder qué falta, preparar una defensa oral o explicar el proyecto, leer este archivo completo y contrastarlo con el estado real del repositorio.
+> Este documento contiene qué evalúa la EP02, cómo se aplica a EduBío 360, qué evidencia existe, qué debe mostrarse y qué conceptos debe dominar el estudiante para defender el trabajo.
+
+---
+
+## 0. Instrucciones de uso para otro chat o asistente
+
+Si otro chat recibe este repositorio y debe ayudar con la EP02, debe trabajar en este orden:
+
+1. Leer este archivo completo.
+2. Inspeccionar el repositorio real, especialmente README.md, docker-compose.yml, pom.xml, los seis microservicios, postman/, scripts/ y .github/workflows/ci.yml.
+3. Relacionar cada decisión con el Indicador de Evaluación correspondiente.
+4. No cambiar arquitectura, base de datos o cantidad de microservicios sin una razón respaldada por la pauta.
+5. No inventar requisitos basándose únicamente en TicketWave. TicketWave es referencia técnica, no el dominio que debe copiarse.
+6. Si se detecta una diferencia entre este documento y el repositorio, manda el repositorio real y debe actualizarse este Markdown.
+7. Antes de agregar código, determinar si la pauta realmente lo exige.
+8. Para enseñar al estudiante, explicar desde cero y relacionar cada concepto con código real de EduBío 360.
+9. Cuando se prepare una defensa oral, practicar preguntas y respuestas, no entregar solamente frases para memorizar.
+10. Diferenciar siempre entre requisito obligatorio, evidencia existente, mejora opcional y evidencia que debe mostrar el estudiante.
+
+### Modo de enseñanza esperado
+
+Cuando el objetivo sea que el estudiante aprenda a defender el proyecto:
+
+- explicar primero el concepto;
+- mostrar dónde aparece en EduBío 360;
+- explicar por qué existe;
+- seguir el flujo real de una petición;
+- enseñar qué pregunta podría hacer el profesor;
+- hacer que el estudiante responda con sus palabras;
+- corregir la respuesta técnica;
+- evitar asumir conocimientos previos.
+
+El objetivo es que el estudiante pueda defender el sistema aunque el profesor cambie la pregunta. No debe limitarse a memorizar un guion.
+
+---
+
+## 0.1 Estado certificado actual de EduBío 360
+
+Repositorio: Nicricht/edubio360.
+
+Rama de entrega: main.
+
+Estado técnico certificado al cerrar esta EP02:
+
+- 6 microservicios de negocio implementados;
+- CRUD REST en los 6;
+- relaciones JPA en los 6;
+- perfiles H2/MySQL;
+- MySQL 8 mediante Docker Compose;
+- colección Postman ejecutada con Newman;
+- 42 requests, 42 assertions y 0 fallos en la certificación final conocida;
+- JUnit + Mockito;
+- MockMvc;
+- Cucumber;
+- JaCoCo;
+- Swagger/OpenAPI;
+- ReDoc;
+- README raíz y README por microservicio;
+- GitFlow con main, develop y feature/*;
+- CI de EP02 en GitHub Actions;
+- generación de JAR con Maven.
+
+La ejecución final certificada sobre main fue EP02 Verify Java 21 #160, commit ebe4c51162fba7660966315caee986a4a0a5747d, con verify y mysql-smoke terminados correctamente.
+
+> Si el repositorio cambia después de ese commit, un chat nuevo debe volver a verificar el CI y no asumir que esta certificación representa el HEAD actual.
+
+### Estado por indicador
+
+| IE | Estado técnico en el repositorio | Evidencia que debe saber mostrar/explicar |
+|---|---|---|
+| IE1 | Cumplido | CRUD REST, @Valid y Swagger |
+| IE2 | Cumplido | controller -> service -> repository -> model/config |
+| IE3 | Cumplido y ejecutado | Postman/Newman y errores 400/404 |
+| IE4 | Cumplido | application-mysql.yml, driver y MySQL real |
+| IE5 | Cumplido | dato persistido mediante JPA/MySQL |
+| IE6 | Cumplido | OneToMany, ManyToOne, JoinColumn, cascade, orphanRemoval |
+| IE7 | Cumplido | mvn clean package, JAR y ejecución |
+| IE8 | Cumplido | dependencias/plugins principales del pom.xml |
+| IE9 | Cumplido | main, develop, feature/*, commits y PR |
+| IE10 | Cumplido | README, Docker Compose, scripts y ejecución reproducible |
+| IE11 | No certificable solo desde Git | video técnico de 3 a 8 minutos |
+| IE12 | No certificable solo desde Git | audio claro y estable |
+
+---
+
+## 0.2 Arquitectura que debe reconocer otro chat
+
+Los seis microservicios de negocio son:
+
+| Servicio | Puerto | Recurso principal | Responsabilidad |
+|---|---:|---|---|
+| Auth Service | 8081 | /api/usuarios | usuarios, registro, login y JWT |
+| Academic Service | 8082 | /api/ofertas | oferta académica y sedes |
+| Guidance Service | 8083 | /api/solicitudes | solicitudes de orientación |
+| Notification Service | 8084 | /api/notificaciones | notificaciones y envíos |
+| Analytics Service | 8085 | /api/metricas | métricas y puntos de métricas |
+| Import Service | 8086 | /api/importaciones | procesos de importación y errores |
+
+Componentes de infraestructura que no se cuentan como microservicios de negocio para el cálculo del 80%:
+
+- API Gateway;
+- Discovery Server / Eureka;
+- RabbitMQ;
+- MySQL.
+
+### Regla del 80%
+
+6 microservicios de negocio × 0,80 = 4,8. Por lo tanto, el mínimo entero es 5.
+
+El repositorio implementa 6 de 6. El ejemplo '8 microservicios -> mínimo 7' pertenece a TicketWave y no obliga a inventar dos servicios adicionales.
+
+---
+
+## 0.3 Mapa mental para explicar el backend al profesor
+
+Flujo principal:
+
+    Cliente / Postman
+           |
+           v
+       Controller
+           |
+           v
+        Service
+           |
+           v
+       Repository
+           |
+           v
+     JPA / Hibernate
+           |
+           v
+         MySQL
+
+Responsabilidades:
+
+- Controller: recibe la petición HTTP y expone endpoints.
+- Service: concentra la lógica de negocio.
+- Repository: abstrae el acceso a datos.
+- JPA/Hibernate: mapea objetos Java con tablas relacionales.
+- MySQL: almacena los datos de forma persistente.
+- DTO: representa entrada/salida y permite validar sin acoplar directamente la API a la entidad.
+- GlobalExceptionHandler: homogeneiza respuestas de error.
+
+Herramientas alrededor del flujo:
+
+- Postman/Newman: prueba la API.
+- Swagger/OpenAPI: documenta la API.
+- JUnit: ejecuta pruebas Java.
+- Mockito: simula dependencias.
+- MockMvc: prueba controladores HTTP.
+- Cucumber: expresa escenarios de comportamiento.
+- JaCoCo: mide cobertura.
+- Maven: compila, prueba y empaqueta.
+- Docker Compose: levanta el entorno.
+- Git/GitHub: versiona y demuestra trazabilidad.
+
+---
+
+## 0.4 Preguntas que otro chat debe practicar con el estudiante
+
+Un chat nuevo debe preparar al estudiante, como mínimo, para responder:
+
+- ¿Qué pide la pauta?
+- ¿Qué hicieron en esta evaluación?
+- ¿Qué es un microservicio?
+- ¿Qué responsabilidad tiene cada uno de los seis servicios?
+- ¿Qué es REST?
+- ¿Qué es CRUD?
+- ¿Qué significan 200, 201, 204, 400 y 404?
+- ¿Qué hace un Controller?
+- ¿Qué hace un Service?
+- ¿Qué hace un Repository?
+- ¿Por qué no se llama al Repository directamente desde el Controller?
+- ¿Qué es un DTO?
+- ¿Qué hace @Valid?
+- ¿Qué hace @RestControllerAdvice?
+- ¿Qué es JPA?
+- ¿Qué es Hibernate?
+- ¿Qué significa OneToMany?
+- ¿Qué significa ManyToOne?
+- ¿Qué hace @JoinColumn?
+- ¿Qué significan cascade y orphanRemoval?
+- ¿Qué diferencia hay entre H2 y MySQL?
+- ¿Qué hace Maven?
+- ¿Qué es un JAR?
+- ¿Qué hace Docker Compose?
+- ¿Qué prueban JUnit, Mockito, MockMvc, Cucumber y JaCoCo?
+- ¿Qué hace Postman/Newman?
+- ¿Qué hace RabbitMQ?
+- ¿Qué hace Eureka?
+- ¿Qué hace el API Gateway?
+- ¿Cómo saben que el sistema funciona?
+- ¿Cómo se relaciona la evidencia mostrada con cada IE?
+
+### Método de práctica
+
+1. Hacer una pregunta.
+2. Esperar la respuesta del estudiante.
+3. Marcar qué parte estuvo correcta.
+4. Detectar conceptos incorrectos o incompletos.
+5. Explicar desde cero usando el código real.
+6. Pedir que responda nuevamente con sus palabras.
+7. Aumentar progresivamente la dificultad.
+
+Orden sugerido de estudio:
+
+1. pauta y seis microservicios;
+2. REST, CRUD y códigos HTTP;
+3. Controller, Service, Repository y DTO;
+4. JPA, Hibernate y relaciones;
+5. MySQL, H2, Docker Compose, Maven y JAR;
+6. pruebas y cobertura;
+7. Gateway, Eureka, RabbitMQ e integración;
+8. simulacro completo de defensa.
+
+---
+
+## 0.5 Qué NO debe hacer otro chat
+
+- No agregar microservicios para llegar a ocho.
+- No volver a Oracle para esta EP02.
+- No sustituir MySQL por otra base sin una nueva instrucción oficial.
+- No inventar requisitos que no aparecen en la pauta.
+- No afirmar que una prueba existe sin inspeccionar repositorio o CI.
+- No afirmar que IE11/IE12 están cumplidos solo porque exista un guion.
+- No confundir Gateway/Eureka/RabbitMQ con los seis microservicios de negocio.
+- No agregar complejidad antes de verificar si aporta evidencia evaluada.
+- No enseñar únicamente con definiciones abstractas. Usar código real del repositorio.
+
+---
+
+## 0.6 Qué revisar si el usuario pregunta '¿qué falta?'
+
+Comprobar en este orden:
+
+1. HEAD actual de main.
+2. Último CI de EP02.
+3. Estado de los seis microservicios.
+4. Colección Postman.
+5. Configuración MySQL/H2.
+6. Docker Compose.
+7. JPA y relaciones.
+8. Pruebas y JaCoCo.
+9. Generación de JAR.
+10. Ramas y Pull Requests.
+11. Documentación.
+12. Evidencia audiovisual.
+
+Solo después de esa auditoría se debe afirmar que algo está cumplido.
+
+---
+
 ## Propósito de este documento
 
 Este archivo consolida la pauta y las instrucciones visibles en el material entregado por el docente para la Evaluación Parcial N°2 de JVY0101, y fija cómo deben interpretarse dentro de EduBío 360.

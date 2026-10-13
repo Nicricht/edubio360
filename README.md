@@ -1,5 +1,9 @@
 # EduBío 360 — Backend de Microservicios
 
+
+> **EP02 / defensa oral:** antes de modificar o explicar el proyecto, leer [docs/PAUTA_EVALUACION_EP02_JVY0101.md](docs/PAUTA_EVALUACION_EP02_JVY0101.md). Ese archivo es el documento maestro de la evaluación: contiene la rúbrica, el estado certificado, la evidencia por IE, la arquitectura que debe explicarse y una guía para que otro chat pueda enseñar y preparar la defensa técnica.
+
+
 Backend de EduBío 360 para exploración, comparación y orientación sobre Educación Superior del Biobío.
 
 La implementación EP02 se construye sobre la arquitectura existente y se alinea con `docs/PAUTA_EVALUACION_EP02_JVY0101.md`.
