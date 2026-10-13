@@ -108,6 +108,35 @@ Eliminar también el volumen MySQL:
 docker compose down -v
 ```
 
+## Construcción Docker y conectividad Maven
+
+Los ocho microservicios comparten una caché de dependencias Maven de BuildKit
+(`/root/.m2/repository`, con escritura bloqueada mientras otro módulo descarga).
+Esto reduce descargas simultáneas repetidas y el riesgo de saturar las conexiones
+a Maven Central. La compilación conserva Java 21 y Spring Boot 3.5.15.
+El repositorio también ignora archivos locales `.env` y salidas `target`
+en el contexto de construcción Docker.
+
+Si Docker muestra `Unknown host repo.maven.apache.org`,
+`Temporary failure in name resolution` o errores de TLS durante la descarga,
+el problema puede estar en la red, DNS, proxy o certificados del Docker Engine
+**local**. No significa que el código Java esté mal y una caché no puede
+resolver una interrupción de red persistente.
+
+Diagnóstico de conectividad sin cambiar archivos ni volúmenes:
+
+```powershell
+docker run --rm maven:3.9.9-eclipse-temurin-21 sh -c "getent hosts repo.maven.apache.org"
+```
+
+Si el diagnóstico de DNS falla, revisar red/DNS del Docker Desktop local.
+Si DNS funciona pero Maven falla por TLS, revisar proxy/certificados de red.
+No usar `docker compose down -v` ni eliminar volúmenes como remedio de conectividad.
+
+La CI de GitHub prueba el build en Linux y los servicios con MySQL/RabbitMQ;
+un resultado correcto allí **no garantiza** el DNS/TLS de Docker Desktop en
+otra computadora.
+
 ## Contrato CRUD EP02
 
 Cada microservicio evaluable expone un recurso principal con el patrón:

@@ -1,3 +1,4 @@
+# syntax=docker/dockerfile:1
 FROM maven:3.9.9-eclipse-temurin-21 AS build
 ARG MODULE
 WORKDIR /workspace
@@ -10,7 +11,12 @@ COPY guidance-service guidance-service
 COPY notification-service notification-service
 COPY analytics-service analytics-service
 COPY import-service import-service
-RUN mvn -q -pl ${MODULE} -am clean package -DskipTests
+
+# Eight services share downloaded dependencies; lock prevents concurrent Maven writes.
+# -U rechecks artifacts after transient download/DNS failures.
+RUN --mount=type=cache,id=edubio360-maven-repository,target=/root/.m2/repository,sharing=locked \
+    mvn -B -ntp -U -pl "${MODULE}" -am clean package -DskipTests \
+    -Daether.transport.http.retryHandler.count=6
 
 FROM eclipse-temurin:21-jre
 ARG MODULE
