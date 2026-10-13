@@ -1,0 +1,12 @@
+# Exclude local metadata, secrets and build outputs from the Docker build context.
+.git
+.github
+.vscode
+.idea
+.env
+.env.*
+**/target
+**/node_modules
+artifacts
+*.log
+**/*.log
