@@ -129,6 +129,15 @@ for spec in   "authdb:users"   "academicdb:ofertas_academicas"   "guidancedb:sol
 done
 
 assert_status 204 -X DELETE "http://localhost:8082/api/ofertas/$academic_id"
+# A successful DELETE must be observable by a fresh GET and in MySQL.
+assert_status 404 "http://localhost:8082/api/ofertas/$academic_id"
+academic_remaining="$(docker compose exec -T mysql mysql -uroot -proot -Nse \
+  "SELECT COUNT(*) FROM academicdb.ofertas_academicas WHERE id=${academic_id}")"
+if [ "$academic_remaining" != "0" ]; then
+  echo "[FAIL] Academic DELETE returned 204 but id=$academic_id still exists in MySQL" >&2
+  exit 1
+fi
+echo "[OK] Academic DELETE persisted: GET 404 and MySQL contains 0 rows"
 assert_status 204 -X DELETE "http://localhost:8083/api/solicitudes/$guidance_id"   -H "X-User-Email: student@example.test" -H "X-User-Role: STUDENT"
 
 echo "[EP02] Ejecutando colección Postman con Newman..."
